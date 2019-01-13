@@ -8,9 +8,11 @@ if __name__ == '__main__':
      # Read and validate arguments
     parser = argparse.ArgumentParser(description='Create dream journals.')
     parser.add_argument('journal_name', type=str, help='The path to the dream journal (without the file extension).')
+    parser.add_argument('--editor', type=str, help='The command to open the file in the editor (ensure your editor command runs in wait mode).')
     args = parser.parse_args()
 
     journal_name = args.journal_name
+    editor_cmd = args.editor if args.editor else "gedit -w"
 
     encryption_password = getpass.getpass()
 
@@ -22,14 +24,17 @@ if __name__ == '__main__':
     # Check if the gpg file exists, if it does, decrypt it
     if os.path.exists(journal_name + ".gpg"):
         # decrypt gpg
-        os.system('echo "' + encryption_password + '" | gpg --batch --yes --passphrase-fd 0 ' + journal_name + ".gpg")
+        ret = os.system('echo "' + encryption_password + '" | gpg --batch --yes --passphrase-fd 0 ' + journal_name + ".gpg")
+        if ret:
+            print("Error decrypting dream journal")
+            exit(1)
     else:
         # create journal file
         f = open(journal_name, 'w')
         f.close()
 
     # Open file for editing
-    os.system('gedit -w ' + journal_name)
+    os.system(editor_cmd + ' ' + journal_name)
 
     # Encrypt file
     os.system('echo "' + encryption_password + '" | gpg -c --batch --yes --passphrase-fd 0 ' + journal_name)
