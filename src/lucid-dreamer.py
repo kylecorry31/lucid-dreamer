@@ -2,6 +2,7 @@
 import argparse
 import os
 import sys
+import getpass
 
 if __name__ == '__main__':
      # Read and validate arguments
@@ -11,6 +12,8 @@ if __name__ == '__main__':
 
     journal_name = args.journal_name
 
+    encryption_password = getpass.getpass()
+
     # Make the directories if they don't exist
     dirname = os.path.dirname(journal_name)
     if dirname:
@@ -19,7 +22,7 @@ if __name__ == '__main__':
     # Check if the gpg file exists, if it does, decrypt it
     if os.path.exists(journal_name + ".gpg"):
         # decrypt gpg
-        os.system('gpg --batch --yes ' + journal_name + ".gpg")
+        os.system('echo "' + encryption_password + '" | gpg --batch --yes --passphrase-fd 0 ' + journal_name + ".gpg")
     else:
         # create journal file
         f = open(journal_name, 'w')
@@ -29,7 +32,7 @@ if __name__ == '__main__':
     os.system('gedit -w ' + journal_name)
 
     # Encrypt file
-    os.system('gpg -c --batch --yes ' + journal_name)
+    os.system('echo "' + encryption_password + '" | gpg -c --batch --yes --passphrase-fd 0 ' + journal_name)
 
     # Delete the decrypted file
-    os.remove(journal_name)
+    os.system('shred -u ' + journal_name)
